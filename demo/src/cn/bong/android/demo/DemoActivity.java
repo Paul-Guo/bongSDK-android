@@ -25,6 +25,7 @@ import cn.bong.android.sdk.model.http.auth.AuthUiListener;
 import cn.bong.android.sdk.model.http.data.DataSyncError;
 import cn.bong.android.sdk.model.http.data.DataSyncState;
 import cn.bong.android.sdk.model.http.data.DataSyncUiListener;
+import cn.bong.android.sdk.model.http.data.ErrorType;
 import cn.bong.android.sdk.utils.DialogUtil;
 import com.litesuits.android.log.Log;
 
@@ -35,24 +36,24 @@ import java.util.Date;
 
 public class DemoActivity extends Activity implements View.OnClickListener {
 
-    private static final String TAG      = DemoActivity.class.getSimpleName();
-    private static final int    MAX_WAIT = 6;// 10 有效控制时间
+    private static final String TAG = DemoActivity.class.getSimpleName();
+    private static final int MAX_WAIT = 6;// 10 有效控制时间
     private ListView listView;
-    private ArrayList<BongEvent> events  = new ArrayList<BongEvent>();
-    private EventAdapter         adapter = new EventAdapter();
-    private int                  seconds = MAX_WAIT;
+    private ArrayList<BongEvent> events = new ArrayList<BongEvent>();
+    private EventAdapter adapter = new EventAdapter();
+    private int seconds = MAX_WAIT;
     private LinearLayout hideView;
-    private Button       vibrate;
-    private Button       light;
-    private Button       startSensor;
-    private Button       stopSensor;
+    private Button vibrate;
+    private Button light;
+    private Button startSensor;
+    private Button stopSensor;
     //private Button       userInfo;
-    private Button       userAuth;
-    private Button       clear;
-    private Button       btStartScann;
-    private Button       btSyncData;
+    private Button userAuth;
+    private Button clear;
+    private Button btStartScann;
+    private Button btSyncData;
     //private Button       btGetBongMac;
-    private TextView     timeTips;
+    private TextView timeTips;
     private Activity activity = this;
 
     private ProgressDialog sensorProgressDialog;
@@ -204,9 +205,12 @@ public class DemoActivity extends Activity implements View.OnClickListener {
                                 BongManager.bongDataSyncnizedByHours(listener, System.currentTimeMillis(), 48);
                                 break;
                             case 2:
-                                int minutes = 30 * 60000;
+                                // 过去N个小时数据
+                                int hour =  60 * 60000;
+                                int N = 8;
                                 long endTime = System.currentTimeMillis();
-                                long startTime = endTime - minutes;
+                                long startTime = endTime - hour * N;
+
                                 BongManager.bongDataSyncnizedByTime(listener, startTime, endTime);
                                 break;
                         }
@@ -241,13 +245,17 @@ public class DemoActivity extends Activity implements View.OnClickListener {
 
         @Override
         public void onFailed(String msg) {
-            if (sensorProgressDialog.isShowing()) sensorProgressDialog.dismiss();
+            if (sensorProgressDialog.isShowing()) {
+                sensorProgressDialog.dismiss();
+            }
             DialogUtil.showTips(activity, "读取失败", msg);
         }
 
         @Override
         public void onSucess() {
-            if (sensorProgressDialog.isShowing()) sensorProgressDialog.dismiss();
+            if (sensorProgressDialog.isShowing()) {
+                sensorProgressDialog.dismiss();
+            }
         }
 
         @Override
@@ -280,11 +288,13 @@ public class DemoActivity extends Activity implements View.OnClickListener {
 
         @Override
         public void onError(DataSyncError error) {
-            if (syncProgressDialog.isShowing()) syncProgressDialog.dismiss();
+            if (syncProgressDialog.isShowing()) {
+                syncProgressDialog.dismiss();
+            }
             DialogUtil.showTips(activity, error.message, error.errorDetail);
             refreshButton();
 
-            if (error.getCode() == DataSyncError.ErrorType.ERROR_CODE_UNBIND) {
+            if (error.getCode() == ErrorType.ERROR_CODE_UNBIND) {
                 // 异步请求获取最新绑定的手环mac。
                 BongManager.bongRefreshMacAsync(null);
             }
@@ -292,7 +302,9 @@ public class DemoActivity extends Activity implements View.OnClickListener {
 
         @Override
         public void onSucess() {
-            if (syncProgressDialog.isShowing()) syncProgressDialog.dismiss();
+            if (syncProgressDialog.isShowing()) {
+                syncProgressDialog.dismiss();
+            }
             DialogUtil.showTips(activity, "同步成功", "数据已上传至云端");
             refreshButton();
         }
@@ -398,8 +410,8 @@ public class DemoActivity extends Activity implements View.OnClickListener {
                     case BongConst.EVENT_DATA_XYZ:
                         // 数据：接收传感器 xyz 三轴原始数据：200秒连接时间，超时自动断开。
                         DataEvent de = (DataEvent) event;
-                        tv.setText(String.format("%-6s", (position + 1) + ".")
-                                + "数据传输 X：" + String.format("%-4s", de.getX())
+                        tv.setText(String.format("%-6s", (position + 1) + ".") + "数据传输 X：" + String.format("%-4s",
+                                de.getX())
                                 + "  Y: " + String.format("%-4s", de.getY())
                                 + "  Z: " + String.format("%-4s", de.getZ())
                                 + "  " + format.format(new Date(event.getTime())));

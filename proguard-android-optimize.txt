@@ -1,0 +1,112 @@
+# This is a configuration file for ProGuard.
+# http://proguard.sourceforge.net/index.html#manual/usage.html
+
+# Optimizations: If you don't want to optimize, use the
+# proguard-android.txt configuration file instead of this one, which
+# turns off the optimization flags.  Adding optimization introduces
+# certain risks, since for example not all optimizations performed by
+# ProGuard works on all versions of Dalvik.  The following flags turn
+# off various optimizations known to have issues, but the list may not
+# be complete or up to date. (The "arithmetic" optimization can be
+# used if you are only targeting Android 2.0 or later.)  Make sure you
+# test thoroughly if you go this route.
+-optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*
+-optimizationpasses 5
+-allowaccessmodification
+-dontpreverify
+
+# The remainder of this file is identical to the non-optimized version
+# of the Proguard configuration file (except that the other file has
+# flags to turn off optimization).
+
+-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclasses
+-verbose
+
+-keep public class com.google.vending.licensing.ILicensingService
+-keep public class com.android.vending.licensing.ILicensingService
+
+# For native methods, see http://proguard.sourceforge.net/manual/examples.html#native
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# keep setters in Views so that animations can still work.
+# see http://proguard.sourceforge.net/manual/examples.html#beans
+-keepclassmembers public class * extends android.view.View {
+   void set*(***);
+   *** get*();
+}
+
+# We want to keep methods in Activity that could be used in the XML attribute onClick
+-keepclassmembers class * extends android.app.Activity {
+   public void *(android.view.View);
+}
+
+-keep class * implements android.os.Parcelable {
+  public static final android.os.Parcelable$Creator *;
+}
+
+-keepclassmembers class **.R$* {
+    public static <fields>;
+}
+
+# The support library contains references to newer platform versions.
+# Don't warn about those in case this app is linking against an older
+# platform version.  We know about them, and they are safe.
+-dontwarn android.support.**
+
+
+# ---------------------android sdk 推荐的混淆配置结束-------------------#
+# add by MaTianty
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+-keepclassmembers class * extends android.content.Context {
+   public void *(android.view.View);
+   public void *(android.view.MenuItem);
+}
+-keep public class * extends android.app.Activity
+-keep public class * extends android.app.Application
+-keep public class * extends android.app.Service
+-keep public class * extends android.content.BroadcastReceiver
+-keep public class * extends android.content.ContentProvider
+-keep public class * extends android.app.backup.BackupAgentHelper
+-keep public class * extends android.preference.Preference
+
+-keep public class * extends android.view.View {
+    public <init>(android.content.Context);
+    public <init>(android.content.Context, android.util.AttributeSet);
+    public <init>(android.content.Context, android.util.AttributeSet, int);
+    public void set*(...);
+}
+
+-keepclasseswithmembers class * {
+    public <init>(android.content.Context, android.util.AttributeSet);
+}
+
+-keepclasseswithmembers class * {
+    public <init>(android.content.Context, android.util.AttributeSet, int);
+}
+# 使用注解
+-keepattributes *Annotation*,Signature
+# 保持混淆时类的实名及行号(--------------- 调试时打开 --------------)
+-keepattributes SourceFile,LineNumberTable
+
+# 枚举保持 see http://proguard.sourceforge.net/manual/examples.html#enumerations
+-keepclassmembers enum * {
+    **[] $VALUES;
+    public *;
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
+# 自定义需要keep的类
+-keep class cn.bong.android.sdk.model.** { *; }
+-keep class * extends cn.bong.android.sdk.model.BaseModel { *; }
+-keep class * implements cn.bong.android.sdk.model.IBaseModel { *; }
+-keep public class cn.bong.android.sdk.* { *; }
+-keep public class cn.bong.android.sdk.config.Environment { *; }
+-keep public class cn.bong.android.sdk.event.* { *; }
+-keep class cn.bong.android.sdk.utils.** { *; }
+-keep class com.litesuits.android.log.** { *; }
