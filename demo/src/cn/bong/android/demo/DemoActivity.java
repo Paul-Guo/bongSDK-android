@@ -13,12 +13,10 @@ import android.widget.*;
 import cn.bong.android.sdk.BongConst;
 import cn.bong.android.sdk.BongManager;
 import cn.bong.android.sdk.config.Environment;
-import cn.bong.android.sdk.event.BongEvent;
-import cn.bong.android.sdk.event.DataEvent;
-import cn.bong.android.sdk.event.TouchEvent;
-import cn.bong.android.sdk.event.TouchEventListener;
+import cn.bong.android.sdk.event.*;
 import cn.bong.android.sdk.model.ble.ConnectState;
 import cn.bong.android.sdk.model.ble.ConnectUiListener;
+import cn.bong.android.sdk.model.bong.BongType;
 import cn.bong.android.sdk.model.http.auth.AuthError;
 import cn.bong.android.sdk.model.http.auth.AuthInfo;
 import cn.bong.android.sdk.model.http.auth.AuthUiListener;
@@ -52,11 +50,12 @@ public class DemoActivity extends Activity implements View.OnClickListener {
     private Button clear;
     private Button btStartScann;
     private Button btSyncData;
+    private Button btRssi;
     //private Button       btGetBongMac;
     private TextView timeTips;
     private Activity activity = this;
 
-    private ProgressDialog sensorProgressDialog;
+    private ProgressDialog progressDialog;
     private ProgressDialog syncProgressDialog;
 
     /**
@@ -69,8 +68,8 @@ public class DemoActivity extends Activity implements View.OnClickListener {
         findViews();
         hideView.setVisibility(View.GONE);
         listView.setAdapter(adapter);
+        progressDialog = new ProgressDialog(activity);
         syncProgressDialog = new ProgressDialog(activity);
-        sensorProgressDialog = new ProgressDialog(activity);
 
         // 测试用AppID（仅测试环境）
         //client_id  1419735044202
@@ -78,7 +77,8 @@ public class DemoActivity extends Activity implements View.OnClickListener {
         //client_secret  558860f5ba4546ddb31eafeee11dc8f4
 
         // 初始化sdk
-        BongManager.initialize(this, "1419735044202", "", "558860f5ba4546ddb31eafeee11dc8f4");
+        //BongManager.initialize(this, "1419735044202", "", "558860f5ba4546ddb31eafeee11dc8f4");
+        BongManager.initialize(this, "1415266387250", "", "7d9b930cabff430a96adce868f90fc85");
         // 开启 调试模式，打印日志
         BongManager.setDebuged(true);
         // 设置 测试环境
@@ -102,8 +102,8 @@ public class DemoActivity extends Activity implements View.OnClickListener {
                     break;
                 case 1:
                     DataEvent e = (DataEvent) msg.obj;
-                    sensorProgressDialog.setTitle("按back键停止");
-                    sensorProgressDialog.setMessage("x: " + e.getX() + ", y: " + e.getY() + ", z: " + e.getZ());
+                    progressDialog.setTitle("按back键停止");
+                    progressDialog.setMessage("x: " + e.getX() + ", y: " + e.getY() + ", z: " + e.getZ());
             }
         }
     };
@@ -140,21 +140,25 @@ public class DemoActivity extends Activity implements View.OnClickListener {
                 BongManager.bongAuth(this, "demo", new AuthUiListener() {
                     @Override
                     public void onError(AuthError error) {
-                        DialogUtil.showTips(activity, "授权失败", " code  : " + error.code
-                                + "\nmsg   : " + error.message
-                                + "\ndetail: " + error.errorDetail);
+                        DialogUtil.showTips(
+                                activity,
+                                "授权失败", " code  : " + error.code
+                                        + "\nmsg   : " + error.message
+                                        + "\ndetail: " + error.errorDetail);
                     }
 
                     @Override
                     public void onSucess(AuthInfo result) {
-                        DialogUtil.showTips(activity, "授权成功", " state : " + result.state
-                                + "\ntoken : " + result.accessToken
-                                + "\nexpire: " + result.expiresIn
-                                + "\nuid   : " + result.uid
-                                + "\nscope : " + result.scope
-                                + "\nrefreh_expire: " + result.refreshTokenExpiration
-                                + "\nrefreh_token : " + result.refreshToken
-                                + "\ntokenType    : " + result.tokenType);
+                        DialogUtil.showTips(
+                                activity,
+                                "授权成功", " state : " + result.state
+                                        + "\ntoken : " + result.accessToken
+                                        + "\nexpire: " + result.expiresIn
+                                        + "\nuid   : " + result.uid
+                                        + "\nscope : " + result.scope
+                                        + "\nrefreh_expire: " + result.refreshTokenExpiration
+                                        + "\nrefreh_token : " + result.refreshToken
+                                        + "\ntokenType    : " + result.tokenType);
                         refreshButton();
                     }
 
@@ -174,16 +178,66 @@ public class DemoActivity extends Activity implements View.OnClickListener {
                 BongManager.turnOnTouchEventListen(this, new TouchEventListener() {
                     @Override
                     public void onTouch(TouchEvent event) {
-                        events.add(event);
-                        adapter.notifyDataSetChanged();
-                        showMoreActions();
+                        if (BongManager.getBongType() == BongType.bong2) {
+                            events.add(event);
+                            adapter.notifyDataSetChanged();
+                            showMoreActions();
+                        } else {
+                            if (event.getTouchType() == TouchType.None) {
+                                setTitle(R.string.app_name);
+                            } else {
+                                setTitle(event.getTouchType().toString());
+                                events.add(event);
+                                adapter.notifyDataSetChanged();
+                            }
+                            // bongX 或者 bongXX 的具体事件类型如下
+                            switch (event.getTouchType()) {
+                                case None:
+                                    setTitle(R.string.app_name);
+                                    break;
+                                case ToLeft:
+                                    // 向左滑动
+                                    break;
+                                case ToRight:
+                                    // 向右滑动
+                                    break;
+                                case ToTop:
+                                    // 向上滑动
+                                    break;
+                                case ToBottom:
+                                    // 向下滑动
+                                    break;
+                                case Clockwise:
+                                    //顺时针滑动
+                                    break;
+                                case AntiClockwise:
+                                    //逆时针滑动
+                                    break;
+                                case SleepIn:
+                                    //睡眠进入
+                                    break;
+                                case SleepOut:
+                                    //睡眠退出
+                                    break;
+                                case BongIn:
+                                    //进入bong状态
+                                    break;
+                                case BongOut:
+                                    //退出bong状态
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
                     }
 
                     @Override
                     public void onLongTouch(TouchEvent event) {
                         events.add(event);
                         adapter.notifyDataSetChanged();
-                        showMoreActions();
+                        if (!BongManager.getBongType().isBongXorXX()) {
+                            showMoreActions();
+                        }
                     }
                 });
                 btStartScann.setText("关闭触摸监听");
@@ -194,7 +248,7 @@ public class DemoActivity extends Activity implements View.OnClickListener {
             } else {
                 AlertDialog.Builder builder = DialogUtil.dialogBuilder(this, "选择同步方式", null);
                 builder.setItems(new String[]{"增量同步：最后一次同步到现在",
-                        "同步过去的48小时到现在", "同步指定时间内数据"}, new DialogInterface.OnClickListener() {
+                                              "同步过去的48小时到现在", "同步指定时间内数据"}, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
@@ -206,8 +260,8 @@ public class DemoActivity extends Activity implements View.OnClickListener {
                                 break;
                             case 2:
                                 // 过去N个小时数据
-                                int hour =  60 * 60000;
-                                int N = 8;
+                                int hour = 60 * 60000;
+                                int N = 4;
                                 long endTime = System.currentTimeMillis();
                                 long startTime = endTime - hour * N;
 
@@ -220,6 +274,40 @@ public class DemoActivity extends Activity implements View.OnClickListener {
                 builder.setPositiveButton("取消", null);
                 builder.show();
             }
+        } else if (v == btRssi) {
+            if (!BongManager.getBongType().isBongXorXX()) {
+                DialogUtil.showTips(activity, null, "仅bongX 和bongXX 支持获取距离");
+            }
+            if (!BongManager.isRssiGeting()) {
+                BongManager.turnOnRssitListen(this, new RssiListener() {
+                    @Override
+                    public void onRssi(int rssi) {
+                        if (BongManager.isRssiGeting() && !progressDialog.isShowing()) {
+                            progressDialog.setTitle("连接中");
+                            progressDialog.setMessage("请触摸 Yes! 键...");
+                            progressDialog.setCancelable(true);
+                            progressDialog.setCanceledOnTouchOutside(false);
+                            progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                @Override
+                                public void onCancel(DialogInterface dialog) {
+                                    BongManager.turnOffRssitListen(DemoActivity.this);
+                                    progressDialog.dismiss();
+                                    refreshButton();
+                                }
+                            });
+                            progressDialog.show();
+                        } else if (progressDialog.isShowing()) {
+                            progressDialog.setTitle("按back键停止");
+                            progressDialog.setMessage("rssi: " + rssi);
+                        }
+                    }
+                });
+            } else {
+                BongManager.turnOffRssitListen(this);
+                progressDialog.dismiss();
+            }
+            refreshButton();
+
         }
     }
 
@@ -229,32 +317,33 @@ public class DemoActivity extends Activity implements View.OnClickListener {
         @Override
         public void onStateChanged(ConnectState state) {
             if (state == ConnectState.Scanning) {
-                sensorProgressDialog.setTitle("连接中");
-                sensorProgressDialog.setMessage("请触摸 Yes! 键...");
-                sensorProgressDialog.setCancelable(true);
-                sensorProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                progressDialog.setTitle("连接中");
+                progressDialog.setMessage("请触摸 Yes! 键...");
+                progressDialog.setCancelable(true);
+                progressDialog.setCanceledOnTouchOutside(false);
+                progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                     @Override
                     public void onCancel(DialogInterface dialog) {
                         BongManager.bongStopSensorOutput(sensorUiListener);
                     }
                 });
             } else if (state == ConnectState.Connecting) {
-                sensorProgressDialog.setMessage("连接中...");
+                progressDialog.setMessage("连接中...");
             }
         }
 
         @Override
         public void onFailed(String msg) {
-            if (sensorProgressDialog.isShowing()) {
-                sensorProgressDialog.dismiss();
+            if (progressDialog.isShowing()) {
+                progressDialog.dismiss();
             }
             DialogUtil.showTips(activity, "读取失败", msg);
         }
 
         @Override
         public void onSucess() {
-            if (sensorProgressDialog.isShowing()) {
-                sensorProgressDialog.dismiss();
+            if (progressDialog.isShowing()) {
+                progressDialog.dismiss();
             }
         }
 
@@ -277,7 +366,11 @@ public class DemoActivity extends Activity implements View.OnClickListener {
         public void onStateChanged(DataSyncState state) {
             if (state == DataSyncState.Scanning) {
                 syncProgressDialog.setTitle("同步中");
-                syncProgressDialog.setMessage("请触摸 Yes! 键...");
+                if (BongManager.getBongType().isBongXorXX()) {
+                    syncProgressDialog.setMessage("正在扫描设备...");
+                } else {
+                    syncProgressDialog.setMessage("请触摸 Yes! 键...");
+                }
                 syncProgressDialog.show();
             } else if (state == DataSyncState.Connecting) {
                 syncProgressDialog.setMessage("发现设备，正在同步...");
@@ -328,6 +421,7 @@ public class DemoActivity extends Activity implements View.OnClickListener {
         userAuth = (Button) findViewById(R.id.btUserAuth);
         clear = (Button) findViewById(R.id.btClear);
         btSyncData = (Button) findViewById(R.id.btSyncData);
+        btRssi = (Button) findViewById(R.id.btRssi);
         btStartScann = (Button) findViewById(R.id.btStartScann);
         listView = (ListView) findViewById(R.id.listView);
         timeTips = (TextView) findViewById(R.id.tvTimeTips);
@@ -340,6 +434,7 @@ public class DemoActivity extends Activity implements View.OnClickListener {
         userAuth.setOnClickListener(this);
         clear.setOnClickListener(this);
         btSyncData.setOnClickListener(this);
+        btRssi.setOnClickListener(this);
         btStartScann.setOnClickListener(this);
 
     }
@@ -354,6 +449,11 @@ public class DemoActivity extends Activity implements View.OnClickListener {
             btSyncData.setText("正在同步...");
         } else {
             btSyncData.setText("开始同步");
+        }
+        if (BongManager.isRssiGeting()) {
+            btRssi.setText("停止获取");
+        } else {
+            btRssi.setText("获取距离");
         }
         if (BongManager.isSessionValid()) {
             userAuth.setText("取消授权");
@@ -399,22 +499,29 @@ public class DemoActivity extends Activity implements View.OnClickListener {
                 switch (event.getEventType()) {
                     case BongConst.EVENT_YES_TOUCH:
                         // 短触：触摸 yes! 键 1秒左右
-                        tv.setText(String.format("%-6s", (position + 1) + ".") + "短触 Yes! 键  " + format.format(new Date
-                                (event.getTime())));
+                        TouchEvent touchEvent = (TouchEvent) event;
+                        if (BongManager.getBongType() == BongType.bong2) {
+                            tv.setText(String.format("%-6s", (position + 1) + ".") + "短触 Yes! 键  "
+                                       + format.format(new Date(touchEvent.getTime())));
+                        } else {
+                            tv.setText(String.format("%-6s", (position + 1) + ".") + touchEvent.getEventType()
+                                       + format.format(new Date(touchEvent.getTime())));
+                        }
                         break;
                     case BongConst.EVENT_YES_LONG_TOUCH:
                         // 长触：触摸 yes! 键 3秒左右
-                        tv.setText(String.format("%-6s", (position + 1) + ".") + "长触 Yes! 键  " + format.format(new Date
-                                (event.getTime())));
+                        tv.setText(String.format("%-6s", (position + 1) + ".") + "长触 Yes! 键  "
+                                   + format.format(new Date(event.getTime())));
                         break;
                     case BongConst.EVENT_DATA_XYZ:
                         // 数据：接收传感器 xyz 三轴原始数据：200秒连接时间，超时自动断开。
-                        DataEvent de = (DataEvent) event;
+                        DataEvent dataEvent = (DataEvent) event;
                         tv.setText(String.format("%-6s", (position + 1) + ".") + "数据传输 X：" + String.format("%-4s",
-                                de.getX())
-                                + "  Y: " + String.format("%-4s", de.getY())
-                                + "  Z: " + String.format("%-4s", de.getZ())
-                                + "  " + format.format(new Date(event.getTime())));
+                                                                                                           dataEvent
+                                                                                                                   .getX())
+                                   + "  Y: " + String.format("%-4s", dataEvent.getY())
+                                   + "  Z: " + String.format("%-4s", dataEvent.getZ())
+                                   + "  " + format.format(new Date(event.getTime())));
                         showMoreActions();
                         break;
                     default:

@@ -7,7 +7,7 @@
     <!-- 因为android从4.3开始支持低功耗蓝牙（4.0），所以sdk必须从18支持起，低于该版本功能不可用-->
     <uses-sdk android:minSdkVersion="18" android:targetSdkVersion="19"/>
 
-    <!-- bong sdk 必须的权限声明 over-->
+    <!-- 必须的权限声明 over-->
     <permission android:name="cn.bong.android.permission.EVENT"
                 android:label="bong event"
                 android:protectionLevel="dangerous"/>
@@ -17,7 +17,8 @@
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-    <!-- bong sdk  必须的权限声明 over-->
+
+    <!-- 必须的权限声明 over-->
 
     <application
             android:allowBackup="true"
@@ -33,7 +34,7 @@
             </intent-filter>
         </activity>
 
-        <!-- bong sdk  必须的一些组件声明 -->
+        <!-- 必须的一些组件声明 -->
         <activity
                 android:name="cn.bong.android.sdk.AuthActivity"
                 android:launchMode="singleTask"
@@ -43,9 +44,10 @@
                   android:permission="cn.bong.android.permission.EVENT">
             <intent-filter>
                 <action android:name="cn.bong.android.action.event"/>
+                <action android:name="cn.bong.android.action.command"/>
             </intent-filter>
         </receiver>
         <service android:name="cn.bong.android.sdk.BlueService"/>
-        <!-- bong sdk 必须的一些组件声明 over-->
+        <!-- 必须的一些组件声明 over-->
     </application>
 </manifest>
