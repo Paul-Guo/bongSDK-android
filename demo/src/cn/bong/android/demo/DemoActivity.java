@@ -77,7 +77,8 @@ public class DemoActivity extends Activity implements View.OnClickListener {
         //client_secret  558860f5ba4546ddb31eafeee11dc8f4
 
         // 初始化sdk
-        BongManager.initialize(this, "1419735044202", "", "558860f5ba4546ddb31eafeee11dc8f4");
+        //BongManager.initialize(this, "1419735044202", "", "558860f5ba4546ddb31eafeee11dc8f4");
+        BongManager.initialize(this, "1415266387250", "", "7d9b930cabff430a96adce868f90fc85");
         // 开启 调试模式，打印日志
         BongManager.setDebuged(true);
         // 设置 测试环境
@@ -170,7 +171,8 @@ public class DemoActivity extends Activity implements View.OnClickListener {
             }
 
         } else if (v == btStartScann) {
-            if (BongManager.isScanning()) {
+            if (BongManager.isTouchCatching()) {
+                // 关闭
                 BongManager.turnOffTouchEventListen(this);
                 btStartScann.setText("开始触摸监听");
             } else {
@@ -439,7 +441,7 @@ public class DemoActivity extends Activity implements View.OnClickListener {
     }
 
     private void refreshButton() {
-        if (BongManager.isScanning()) {
+        if (BongManager.isTouchCatching()) {
             btStartScann.setText("关闭触摸监听");
         } else {
             btStartScann.setText("开始触摸监听");
