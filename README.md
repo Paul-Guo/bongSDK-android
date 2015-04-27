@@ -297,24 +297,7 @@ application
                 BongManager.turnOnRssitListen(this, new RssiListener() {
                     @Override
                     public void onRssi(int rssi) {
-                        if (BongManager.isRssiGeting() && !progressDialog.isShowing()) {
-                            progressDialog.setTitle("连接中");
-                            progressDialog.setMessage("请触摸 Yes! 键...");
-                            progressDialog.setCancelable(true);
-                            progressDialog.setCanceledOnTouchOutside(false);
-                            progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                @Override
-                                public void onCancel(DialogInterface dialog) {
-                                    BongManager.turnOffRssitListen(DemoActivity.this);
-                                    progressDialog.dismiss();
-                                    refreshButton();
-                                }
-                            });
-                            progressDialog.show();
-                        } else if (progressDialog.isShowing()) {
-                            progressDialog.setTitle("按back键停止");
-                            progressDialog.setMessage("rssi: " + rssi);
-                        }
+                    
                     }
                 });
             } else {
